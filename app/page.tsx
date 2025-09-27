@@ -123,103 +123,125 @@ function AIFeedbackPanel({
           maxHeight: '520px',
           minHeight: '520px',
           overflow: 'auto',
-          padding: '24px',
+          paddingTop: '24px',
+          paddingLeft: '24px',
+          paddingRight: '24px',
+          paddingBottom: '0px', // Remove bottom padding
           flexShrink: 0
         }}
       >
-        {/* Live streaming analysis - Always at top */}
-        {isProcessing && currentAnalysis && (
-          <div 
-            style={{
-              marginBottom: '16px',
-              padding: '16px',
-              backgroundColor: 'hsl(var(--primary) / 0.1)',
-              borderRadius: '8px',
-              border: '1px solid hsl(var(--primary) / 0.2)'
-            }}
-          >
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              marginBottom: '8px',
-              color: 'hsl(var(--primary))',
-              fontWeight: '500'
-            }}>
-              <ZapIcon /> Analyzing...
-            </div>
+        <div style={{ paddingBottom: '24px' }}>
+          {/* Live streaming analysis - Always at top */}
+          {isProcessing && currentAnalysis && (
             <div 
               style={{
-                fontSize: '14px',
-                color: 'hsl(var(--muted-foreground))',
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word',
-                whiteSpace: 'pre-wrap',
-                maxWidth: '100%'
+                marginBottom: '16px',
+                padding: '16px',
+                backgroundColor: 'hsl(var(--primary) / 0.1)',
+                borderRadius: '8px',
+                border: '1px solid hsl(var(--primary) / 0.2)'
               }}
             >
-              {currentAnalysis}
-            </div>
-          </div>
-        )}
-        
-        {/* Analysis results - Latest first */}
-        {analysisResults.map((result, index) => (
-          <div 
-            key={result.id} 
-            style={{
-              marginTop: (index > 0 || (isProcessing && currentAnalysis)) ? '16px' : '0',
-              padding: '16px',
-              backgroundColor: 'hsl(var(--muted) / 0.5)',
-              borderRadius: '8px',
-              border: '1px solid hsl(var(--border))'
-            }}
-          >
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between', 
-              marginBottom: '8px' 
-            }}>
-              <span style={{ fontSize: '14px', fontWeight: '500' }}>{result.timestamp}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Progress value={result.confidence * 100} className="w-16 h-2" />
-                <span style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
-                  {(result.confidence * 100).toFixed(0)}%
-                </span>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                marginBottom: '8px',
+                color: 'hsl(var(--primary))',
+                fontWeight: '500'
+              }}>
+                <ZapIcon /> Analyzing...
+              </div>
+              <div 
+                style={{
+                  fontSize: '14px',
+                  color: 'hsl(var(--muted-foreground))',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'pre-wrap',
+                  maxWidth: '100%'
+                }}
+              >
+                {currentAnalysis}
               </div>
             </div>
+          )}
+          
+          {/* Empty state */}
+          {analysisResults.length === 0 && !isProcessing && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '400px',
+              color: 'hsl(var(--muted-foreground))'
+            }}>
+              <div style={{ width: '48px', height: '48px', marginBottom: '12px', opacity: 0.5 }}>
+                <ActivityIcon />
+              </div>
+              <p style={{ textAlign: 'center' }}>Results will appear here</p>
+            </div>
+          )}
+          
+          {/* Analysis results - Latest first */}
+          {analysisResults.map((result, index) => (
             <div 
+              key={result.id} 
               style={{
-                fontSize: '14px',
-                color: 'hsl(var(--muted-foreground))',
-                marginBottom: '12px',
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word',
-                whiteSpace: 'pre-wrap',
-                maxWidth: '100%'
+                marginTop: (index > 0 || (isProcessing && currentAnalysis)) ? '16px' : '0',
+                padding: '16px',
+                backgroundColor: 'hsl(var(--muted) / 0.5)',
+                borderRadius: '8px',
+                border: '1px solid hsl(var(--border))'
               }}
             >
-              {result.description}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                marginBottom: '8px' 
+              }}>
+                <span style={{ fontSize: '14px', fontWeight: '500' }}>{result.timestamp}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Progress value={result.confidence * 100} className="w-16 h-2" />
+                  <span style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
+                    {(result.confidence * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+              <div 
+                style={{
+                  fontSize: '14px',
+                  color: 'hsl(var(--muted-foreground))',
+                  marginBottom: '12px',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'pre-wrap',
+                  maxWidth: '100%'
+                }}
+              >
+                {result.description}
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: '4px', 
+                marginBottom: '8px' 
+              }}>
+                {result.objects.map((obj, idx) => (
+                  <Badge key={idx} variant="outline">{obj.name}</Badge>
+                ))}
+              </div>
+              <div style={{ 
+                fontSize: '12px', 
+                color: 'hsl(var(--muted-foreground))' 
+              }}>
+                Processed in {result.processing_time}ms
+              </div>
             </div>
-            <div style={{ 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              gap: '4px', 
-              marginBottom: '8px' 
-            }}>
-              {result.objects.map((obj, idx) => (
-                <Badge key={idx} variant="outline">{obj.name}</Badge>
-              ))}
-            </div>
-            <div style={{ 
-              fontSize: '12px', 
-              color: 'hsl(var(--muted-foreground))' 
-            }}>
-              Processed in {result.processing_time}ms
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
