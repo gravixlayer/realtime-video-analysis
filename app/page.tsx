@@ -119,9 +119,9 @@ function AIFeedbackPanel({
       <div 
         ref={scrollContainerRef}
         style={{
-          height: '520px', // Fixed height: 600px - 80px header
-          maxHeight: '520px',
-          minHeight: '520px',
+          height:  '700px', // Fixed height: 600px - 80px header
+          maxHeight: '700px',
+          minHeight: '300px',
           overflow: 'auto',
           paddingTop: '24px',
           paddingLeft: '24px',
@@ -177,10 +177,12 @@ function AIFeedbackPanel({
               height: '400px',
               color: 'hsl(var(--muted-foreground))'
             }}>
-              <div style={{ width: '48px', height: '48px', marginBottom: '12px', opacity: 0.5 }}>
-                <ActivityIcon />
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                <div style={{ width: '48px', height: '48px', marginBottom: '12px', opacity: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ActivityIcon />
+                </div>
+                <p style={{ textAlign: 'center' }}>Results will appear here</p>
               </div>
-              <p style={{ textAlign: 'center' }}>Results will appear here</p>
             </div>
           )}
           
@@ -254,6 +256,7 @@ export default function VideoAnalysisApp() {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({ totalFrames: 0, avgProcessingTime: 0, avgConfidence: 0 });
   const [currentAnalysis, setCurrentAnalysis] = useState<string>("");
+  const [sessionId] = useState(() => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString());
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -292,12 +295,11 @@ export default function VideoAnalysisApp() {
 
   const stopCapture = () => {
     if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
     }
     setIsCapturing(false);
     setIsProcessing(false);
-    setAnalysisResults([]);
-    setStats({ totalFrames: 0, avgProcessingTime: 0, avgConfidence: 0 });
+    // Do NOT clear analysisResults or stats here; session persists until reload
   };
   
   const captureFrame = () => {
@@ -383,7 +385,10 @@ export default function VideoAnalysisApp() {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold">Real-time Video Analysis</h1>
-          <a href="https://github.com/" target="_blank" rel="noopener noreferrer"><GithubIcon /></a>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm text-muted-foreground">Qwen 2.5&nbsp;|</span>
+            <a href="https://github.com/" target="_blank" rel="noopener noreferrer"><GithubIcon /></a>
+          </div>
         </div>
       </header>
       
