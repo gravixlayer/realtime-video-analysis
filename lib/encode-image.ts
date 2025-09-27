@@ -6,7 +6,7 @@ export function encodeImageFromBuffer(imageBuffer: Buffer): string {
 
 export async function analyzeImageWithAI(
   base64Image: string,
-  prompt = "Analyze this image in detail. Describe what you see, including objects, people, activities, colors, and any notable features.",
+  prompt = "Analyze this image in detail. Describe what you see, including objects, people, activities, colors, and any notable features. STRICTLY LIMIT THE ANSWER TO ONE LINE.",
 ) {
   if (!process.env.GRAVIXLAYER_API_KEY) {
     throw new Error("GRAVIXLAYER_API_KEY environment variable is not set")
@@ -22,10 +22,7 @@ export async function analyzeImageWithAI(
 
   try {
     const possibleModels = [
-      "qwen/qwen-2.5-vl-7b-instruct",
-      "qwen2-vl-7b-instruct",
-      "qwen-vl-chat",
-      "gpt-4-vision-preview",
+      "qwen/qwen-2.5-vl-7b-instruct"
     ]
 
     let lastError: any = null
