@@ -62,36 +62,26 @@ interface AnalysisResult {
 }
 
 // Simple scrollable text box with absolutely fixed dimensions
-function AIFeedbackPanel({ 
-  isProcessing, 
-  currentAnalysis, 
-  analysisResults 
-}: { 
-  isProcessing: boolean;
-  currentAnalysis: string;
-  analysisResults: AnalysisResult[];
-}) {
+function AIFeedbackPanel({ isProcessing, currentAnalysis, analysisResults }: { isProcessing: boolean; currentAnalysis: string; analysisResults: AnalysisResult[] }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Keep scroll at top when new content arrives
   useEffect(() => {
     if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      container.scrollTop = 0; // Always stay at top to show latest
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
     }
-  }, [analysisResults]); // Only trigger on new results, not streaming text
+  }, [analysisResults.length]);
 
   return (
     <div 
       style={{ 
         width: '100%', 
-        height: '600px', // Fixed pixel height
         display: 'flex',
         flexDirection: 'column',
         border: '1px solid hsl(var(--border))',
         borderRadius: '8px',
         backgroundColor: 'hsl(var(--card))',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        flex: 1,
+        minHeight: 0
       }}
     >
       {/* Fixed Header */}
@@ -114,20 +104,17 @@ function AIFeedbackPanel({
           )}
         </div>
       </div>
-      
-      {/* Fixed Height Scrollable Content */}
+      {/* Dynamic Height Scrollable Content */}
       <div 
         ref={scrollContainerRef}
         style={{
-          height:  '700px', // Fixed height: 600px - 80px header
-          maxHeight: '700px',
-          minHeight: '300px',
+          flex: 1,
+          minHeight: 0,
           overflow: 'auto',
           paddingTop: '24px',
           paddingLeft: '24px',
           paddingRight: '24px',
-          paddingBottom: '0px', // Remove bottom padding
-          flexShrink: 0
+          paddingBottom: '0px',
         }}
       >
         <div style={{ paddingBottom: '24px' }}>
@@ -166,7 +153,6 @@ function AIFeedbackPanel({
               </div>
             </div>
           )}
-          
           {/* Empty state */}
           {analysisResults.length === 0 && !isProcessing && (
             <div style={{
@@ -185,7 +171,6 @@ function AIFeedbackPanel({
               </div>
             </div>
           )}
-          
           {/* Analysis results - Latest first */}
           {analysisResults.map((result, index) => (
             <div 
@@ -402,84 +387,87 @@ export default function VideoAnalysisApp() {
       )}
       
       <main className="container mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6" style={{ height: '80vh' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '24px', height: 'calc(100vh - 160px)', minHeight: 0 }}>
           {/* Left Panel - Camera */}
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CameraIcon />Webcam Feed
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              <div className="relative flex-1 bg-muted rounded-lg overflow-hidden">
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
-                  playsInline 
-                  muted 
-                  className={`w-full h-full object-cover ${isCapturing ? "block" : "hidden"}`} 
-                />
-                <canvas ref={canvasRef} className="hidden" />
-                {!isCapturing && (
-                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <div className="w-8 h-8 mx-auto mb-3 opacity-50">
-                        <CameraIcon />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <Card className="flex flex-col h-full min-h-0" style={{ flex: 1, minHeight: 0 }}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CameraIcon />Webcam Feed
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col">
+                <div className="relative flex-1 bg-muted rounded-lg overflow-hidden">
+                  <video 
+                    ref={videoRef} 
+                    autoPlay 
+                    playsInline 
+                    muted 
+                    className={`w-full h-full object-cover ${isCapturing ? "block" : "hidden"}`} 
+                  />
+                  <canvas ref={canvasRef} className="hidden" />
+                  {!isCapturing && (
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                      <div className="text-center">
+                        <div className="w-8 h-8 mx-auto mb-3 opacity-50">
+                          <CameraIcon />
+                        </div>
+                        <p>Click "Start Analysis" to begin</p>
                       </div>
-                      <p>Click "Start Analysis" to begin</p>
                     </div>
-                  </div>
-                )}
-                {isCapturing && (
-                   <div className="absolute top-4 left-4 flex gap-2">
-                      <Badge variant="default" className="flex items-center gap-1">
-                        <ActivityIcon /> AI Active
-                      </Badge>
-                      {isProcessing && (
-                        <Badge className="bg-primary/90 flex items-center gap-1">
-                          <ZapIcon /> Processing
+                  )}
+                  {isCapturing && (
+                     <div className="absolute top-4 left-4 flex gap-2">
+                        <Badge variant="default" className="flex items-center gap-1">
+                          <ActivityIcon /> AI Active
                         </Badge>
-                      )}
-                   </div>
-                )}
-              </div>
-              <div className="pt-4 mt-4 border-t">
-                <div className="flex justify-center gap-4 mb-4">
-                  <Button onClick={startCapture} disabled={isCapturing}>
-                    Start Analysis
-                  </Button>
-                  <Button onClick={stopCapture} disabled={!isCapturing} variant="secondary">
-                    Stop
-                  </Button>
+                        {isProcessing && (
+                          <Badge className="bg-primary/90 flex items-center gap-1">
+                            <ZapIcon /> Processing
+                          </Badge>
+                        )}
+                     </div>
+                  )}
                 </div>
-                {isCapturing && (
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-lg font-bold text-primary">{stats.totalFrames}</div>
-                      <div className="text-xs text-muted-foreground">Frames</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-primary">{stats.avgProcessingTime}ms</div>
-                      <div className="text-xs text-muted-foreground">Avg Time</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-primary">
-                        {(stats.avgConfidence * 100).toFixed(0)}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">Confidence</div>
-                    </div>
+                <div className="pt-4 mt-4 border-t">
+                  <div className="flex justify-center gap-4 mb-4">
+                    <Button onClick={startCapture} disabled={isCapturing}>
+                      Start Analysis
+                    </Button>
+                    <Button onClick={stopCapture} disabled={!isCapturing} variant="secondary">
+                      Stop
+                    </Button>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Right Panel - AI Feedback with Fixed Height */}
-          <AIFeedbackPanel 
-            isProcessing={isProcessing}
-            currentAnalysis={currentAnalysis}
-            analysisResults={analysisResults}
-          />
+                  {isCapturing && (
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-lg font-bold text-primary">{stats.totalFrames}</div>
+                        <div className="text-xs text-muted-foreground">Frames</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-primary">{stats.avgProcessingTime}ms</div>
+                        <div className="text-xs text-muted-foreground">Avg Time</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-primary">
+                          {(stats.avgConfidence * 100).toFixed(0)}%
+                        </div>
+                        <div className="text-xs text-muted-foreground">Confidence</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          {/* Right Panel - AI Feedback */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <AIFeedbackPanel 
+              isProcessing={isProcessing}
+              currentAnalysis={currentAnalysis}
+              analysisResults={analysisResults}
+            />
+          </div>
         </div>
       </main>
       
