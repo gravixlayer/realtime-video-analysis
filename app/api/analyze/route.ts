@@ -3,28 +3,28 @@ import { analyzeImageWithAI, encodeImageFromBuffer } from "@/lib/encode-image"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("[v0] Analysis API called...")
+    console.log("Analysis API called...")
 
     const formData = await request.formData()
     const imageFile = formData.get("image") as File
 
     if (!imageFile) {
-      console.log("[v0] No image provided in request")
+      console.log("No image provided in request")
       return NextResponse.json({ error: "No image provided" }, { status: 400 })
     }
 
-    console.log("[v0] Image file received, size:", imageFile.size, "type:", imageFile.type)
+    console.log("Image file received, size:", imageFile.size, "type:", imageFile.type)
 
     // Convert file to buffer
     const arrayBuffer = await imageFile.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    console.log("[v0] Converting image to base64...")
+    console.log("Converting image to base64...")
     // Encode image to base64
     const base64Image = encodeImageFromBuffer(buffer)
-    console.log("[v0] Base64 encoding complete, length:", base64Image.length)
+    console.log("Base64 encoding complete, length:", base64Image.length)
 
-    console.log("[v0] Starting AI analysis...")
+    console.log("Starting AI analysis...")
     // Get AI analysis stream
     const stream = await analyzeImageWithAI(base64Image)
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const readableStream = new ReadableStream({
       async start(controller) {
         try {
-          console.log("[v0] Processing AI stream...")
+          console.log("Processing AI stream...")
           for await (const chunk of stream) {
             if (chunk.choices[0]?.delta?.content) {
               const content = chunk.choices[0].delta.content
@@ -42,9 +42,9 @@ export async function POST(request: NextRequest) {
           }
           controller.enqueue(encoder.encode("data: [DONE]\n\n"))
           controller.close()
-          console.log("[v0] Stream processing complete")
+          console.log("Stream processing complete")
         } catch (error) {
-          console.error("[v0] Stream processing error:", error)
+          console.error("Stream processing error:", error)
           controller.error(error)
         }
       },
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[v0] Analysis API error:", error)
+    console.error("Analysis API error:", error)
 
     let errorMessage = "Analysis failed"
     if (error instanceof Error) {

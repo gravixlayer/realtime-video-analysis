@@ -18,7 +18,7 @@ export async function analyzeImageWithAI(
     dangerouslyAllowBrowser: true,
   })
 
-  console.log("[v0] Making AI API call to GravixLayer...")
+  console.log("Making AI API call to GravixLayer...")
 
   try {
     const possibleModels = [
@@ -29,7 +29,7 @@ export async function analyzeImageWithAI(
 
     for (const model of possibleModels) {
       try {
-        console.log(`[v0] Trying model: ${model}`)
+        console.log(`Trying model: ${model}`)
 
         const stream = await client.chat.completions.create({
           model: model,
@@ -52,10 +52,10 @@ export async function analyzeImageWithAI(
           temperature: 0.7,
         })
 
-        console.log(`[v0] AI API call successful with model: ${model}`)
+        console.log(`AI API call successful with model: ${model}`)
         return stream
       } catch (error) {
-        console.log(`[v0] Model ${model} failed:`, error)
+        console.log(`Model ${model} failed:`, error)
         lastError = error
         continue
       }
@@ -63,7 +63,7 @@ export async function analyzeImageWithAI(
 
     throw lastError || new Error("All models failed")
   } catch (error) {
-    console.error("[v0] AI API call failed:", error)
+    console.error("AI API call failed:", error)
     throw error
   }
 }

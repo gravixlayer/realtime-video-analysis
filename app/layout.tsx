@@ -5,9 +5,9 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.app',
+  title: 'realtimevideoanalysis',
+  description: 'Analyze videos in real-time with AI',
+  generator: 'Powered by Gravix Layer',
 }
 
 export default function RootLayout({

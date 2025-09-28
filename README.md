@@ -9,7 +9,7 @@ Real-time Video Analysis is an AI-powered web application that lets you stream y
 
 1. **Clone the repository and install dependencies:**
 	```bash
-	git clone https://github.com/yourusername/realtime-video-analysis.git
+	git clone https://github.com/gravixlayer/realtime-video-analysis
 	cd realtime-video-analysis
 	pnpm install # or npm install or yarn install
 	```

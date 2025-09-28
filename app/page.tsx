@@ -372,7 +372,7 @@ export default function VideoAnalysisApp() {
           <h1 className="text-xl font-semibold">Real-time Video Analysis</h1>
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm text-muted-foreground">Qwen 2.5&nbsp;|</span>
-            <a href="https://github.com/" target="_blank" rel="noopener noreferrer"><GithubIcon /></a>
+            <a href="https://github.com/gravixlayer/realtime-video-analysis" target="_blank" rel="noopener noreferrer"><GithubIcon /></a>
           </div>
         </div>
       </header>

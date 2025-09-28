@@ -32,7 +32,7 @@ export class VideoAnalysisWebSocket {
       this.ws = new WebSocket(wsUrl)
 
       this.ws.onopen = () => {
-        console.log("[v0] WebSocket connected")
+        console.log("WebSocket connected")
         this.reconnectAttempts = 0
         this.onConnectionChange(true)
       }
@@ -45,22 +45,22 @@ export class VideoAnalysisWebSocket {
             this.onAnalysisResult(data.result)
           }
         } catch (error) {
-          console.error("[v0] Error parsing WebSocket message:", error)
+          console.error("Error parsing WebSocket message:", error)
         }
       }
 
       this.ws.onclose = () => {
-        console.log("[v0] WebSocket disconnected")
+        console.log("WebSocket disconnected")
         this.onConnectionChange(false)
         this.attemptReconnect()
       }
 
       this.ws.onerror = (error) => {
-        console.error("[v0] WebSocket error:", error)
+        console.error("WebSocket error:", error)
         this.onError("WebSocket connection error")
       }
     } catch (error) {
-      console.error("[v0] Failed to create WebSocket:", error)
+      console.error("Failed to create WebSocket:", error)
       this.onError("Failed to establish WebSocket connection")
     }
   }
@@ -82,14 +82,14 @@ export class VideoAnalysisWebSocket {
 
       this.ws.send(JSON.stringify(message))
     } else {
-      console.warn("[v0] WebSocket not connected, cannot send frame")
+      console.warn("WebSocket not connected, cannot send frame")
     }
   }
 
   private attemptReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++
-      console.log(`[v0] Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
+      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
 
       setTimeout(() => {
         this.connect()
