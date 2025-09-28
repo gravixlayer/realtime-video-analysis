@@ -62,26 +62,36 @@ interface AnalysisResult {
 }
 
 // Simple scrollable text box with absolutely fixed dimensions
-function AIFeedbackPanel({ isProcessing, currentAnalysis, analysisResults }: { isProcessing: boolean; currentAnalysis: string; analysisResults: AnalysisResult[] }) {
+function AIFeedbackPanel({ 
+  isProcessing, 
+  currentAnalysis, 
+  analysisResults 
+}: { 
+  isProcessing: boolean;
+  currentAnalysis: string;
+  analysisResults: AnalysisResult[];
+}) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Keep scroll at top when new content arrives
   useEffect(() => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      const container = scrollContainerRef.current;
+      container.scrollTop = 0; // Always stay at top to show latest
     }
-  }, [analysisResults.length]);
+  }, [analysisResults]); // Only trigger on new results, not streaming text
 
   return (
     <div 
       style={{ 
         width: '100%', 
+        height: '100%', // Use all available height
         display: 'flex',
         flexDirection: 'column',
         border: '1px solid hsl(var(--border))',
         borderRadius: '8px',
         backgroundColor: 'hsl(var(--card))',
-        overflow: 'hidden',
-        flex: 1,
-        minHeight: 0
+        overflow: 'hidden'
       }}
     >
       {/* Fixed Header */}
@@ -104,17 +114,17 @@ function AIFeedbackPanel({ isProcessing, currentAnalysis, analysisResults }: { i
           )}
         </div>
       </div>
-      {/* Dynamic Height Scrollable Content */}
+      
+      {/* Fixed Height Scrollable Content */}
       <div 
         ref={scrollContainerRef}
         style={{
           flex: 1,
-          minHeight: 0,
           overflow: 'auto',
           paddingTop: '24px',
           paddingLeft: '24px',
           paddingRight: '24px',
-          paddingBottom: '0px',
+          paddingBottom: '0px', // Remove bottom padding
         }}
       >
         <div style={{ paddingBottom: '24px' }}>
@@ -153,6 +163,7 @@ function AIFeedbackPanel({ isProcessing, currentAnalysis, analysisResults }: { i
               </div>
             </div>
           )}
+          
           {/* Empty state */}
           {analysisResults.length === 0 && !isProcessing && (
             <div style={{
@@ -163,14 +174,13 @@ function AIFeedbackPanel({ isProcessing, currentAnalysis, analysisResults }: { i
               height: '400px',
               color: 'hsl(var(--muted-foreground))'
             }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                <div style={{ width: '48px', height: '48px', marginBottom: '12px', opacity: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ActivityIcon />
-                </div>
-                <p style={{ textAlign: 'center' }}>Results will appear here</p>
+              <div style={{ width: '48px', height: '48px', marginBottom: '12px', opacity: 0.5 }}>
+                <ActivityIcon />
               </div>
+              <p style={{ textAlign: 'center' }}>Results will appear here</p>
             </div>
           )}
+          
           {/* Analysis results - Latest first */}
           {analysisResults.map((result, index) => (
             <div 
@@ -241,7 +251,6 @@ export default function VideoAnalysisApp() {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({ totalFrames: 0, avgProcessingTime: 0, avgConfidence: 0 });
   const [currentAnalysis, setCurrentAnalysis] = useState<string>("");
-  const [sessionId] = useState(() => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString());
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -280,11 +289,12 @@ export default function VideoAnalysisApp() {
 
   const stopCapture = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
     }
     setIsCapturing(false);
     setIsProcessing(false);
-    // Do NOT clear analysisResults or stats here; session persists until reload
+    setAnalysisResults([]);
+    setStats({ totalFrames: 0, avgProcessingTime: 0, avgConfidence: 0 });
   };
   
   const captureFrame = () => {
@@ -369,7 +379,13 @@ export default function VideoAnalysisApp() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Real-time Video Analysis</h1>
+          <div className="flex items-center gap-3">
+            <img src="/gravixlayer-logo.png" alt="GravixLayer Logo" style={{ height: 32, width: 32 }} />
+            <h1 className="text-xl font-semibold flex items-center gap-2">
+              Real-time Video Analysis
+              <span>| Gravix Layer</span>
+            </h1>
+          </div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm text-muted-foreground">Qwen 2.5&nbsp;|</span>
             <a href="https://github.com/gravixlayer/realtime-video-analysis" target="_blank" rel="noopener noreferrer"><GithubIcon /></a>
@@ -387,99 +403,97 @@ export default function VideoAnalysisApp() {
       )}
       
       <main className="container mx-auto px-6 py-6">
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '24px', height: 'calc(100vh - 160px)', minHeight: 0 }}>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6" style={{ height: '80vh' }}>
           {/* Left Panel - Camera */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <Card className="flex flex-col h-full min-h-0" style={{ flex: 1, minHeight: 0 }}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CameraIcon />Webcam Feed
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                <div className="relative flex-1 bg-muted rounded-lg overflow-hidden">
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline 
-                    muted 
-                    className={`w-full h-full object-cover ${isCapturing ? "block" : "hidden"}`} 
-                  />
-                  <canvas ref={canvasRef} className="hidden" />
-                  {!isCapturing && (
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                      <div className="text-center">
-                        <div className="w-8 h-8 mx-auto mb-3 opacity-50">
-                          <CameraIcon />
-                        </div>
-                        <p>Click "Start Analysis" to begin</p>
+          <Card className="h-full flex flex-col">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CameraIcon />Webcam Feed
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col">
+              <div className="relative flex-1 bg-muted rounded-lg overflow-hidden">
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  className={`w-full h-full object-cover ${isCapturing ? "block" : "hidden"}`} 
+                />
+                <canvas ref={canvasRef} className="hidden" />
+                {!isCapturing && (
+                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <div className="w-8 h-8 mx-auto mb-3 opacity-50">
+                        <CameraIcon />
                       </div>
+                      <p>Click "Start Analysis" to begin</p>
                     </div>
-                  )}
-                  {isCapturing && (
-                     <div className="absolute top-4 left-4 flex gap-2">
-                        <Badge variant="default" className="flex items-center gap-1">
-                          <ActivityIcon /> AI Active
-                        </Badge>
-                        {isProcessing && (
-                          <Badge className="bg-primary/90 flex items-center gap-1">
-                            <ZapIcon /> Processing
-                          </Badge>
-                        )}
-                     </div>
-                  )}
-                </div>
-                <div className="pt-4 mt-4 border-t">
-                  <div className="flex justify-center gap-4 mb-4">
-                    <Button onClick={startCapture} disabled={isCapturing}>
-                      Start Analysis
-                    </Button>
-                    <Button onClick={stopCapture} disabled={!isCapturing} variant="secondary">
-                      Stop
-                    </Button>
                   </div>
-                  {isCapturing && (
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <div className="text-lg font-bold text-primary">{stats.totalFrames}</div>
-                        <div className="text-xs text-muted-foreground">Frames</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-primary">{stats.avgProcessingTime}ms</div>
-                        <div className="text-xs text-muted-foreground">Avg Time</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-primary">
-                          {(stats.avgConfidence * 100).toFixed(0)}%
-                        </div>
-                        <div className="text-xs text-muted-foreground">Confidence</div>
-                      </div>
-                    </div>
-                  )}
+                )}
+                {isCapturing && (
+                   <div className="absolute top-4 left-4 flex gap-2">
+                      <Badge variant="default" className="flex items-center gap-1">
+                        <ActivityIcon /> AI Active
+                      </Badge>
+                      {isProcessing && (
+                        <Badge className="bg-primary/90 flex items-center gap-1">
+                          <ZapIcon /> Processing
+                        </Badge>
+                      )}
+                   </div>
+                )}
+              </div>
+              <div className="pt-4 mt-4 border-t">
+                <div className="flex justify-center gap-4 mb-4">
+                  <Button onClick={startCapture} disabled={isCapturing}>
+                    Start Analysis
+                  </Button>
+                  <Button onClick={stopCapture} disabled={!isCapturing} variant="secondary">
+                    Stop
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-          {/* Right Panel - AI Feedback */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <AIFeedbackPanel 
-              isProcessing={isProcessing}
-              currentAnalysis={currentAnalysis}
-              analysisResults={analysisResults}
-            />
-          </div>
+                {isCapturing && (
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-lg font-bold text-primary">{stats.totalFrames}</div>
+                      <div className="text-xs text-muted-foreground">Frames</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-primary">{stats.avgProcessingTime}ms</div>
+                      <div className="text-xs text-muted-foreground">Avg Time</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-primary">
+                        {(stats.avgConfidence * 100).toFixed(0)}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">Confidence</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Right Panel - AI Feedback with Fixed Height */}
+          <AIFeedbackPanel 
+            isProcessing={isProcessing}
+            currentAnalysis={currentAnalysis}
+            analysisResults={analysisResults}
+          />
         </div>
       </main>
       
       <footer className="w-full py-6">
         <div className="container mx-auto">
-          <p className="text-center text-sm text-muted-foreground">
-            Powered by{' '}
+          <p className="text-center text-sm">
+            <span style={{ color: '#fff' }}>Powered by </span>
             <a 
               href="https://gravixlayer.com/" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="underline font-semibold"
+              style={{ color: '#6C4DFF' }}
             >
               Gravix Layer
             </a>

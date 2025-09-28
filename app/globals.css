@@ -3,6 +3,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+html {
+  font-size: 15px;
+}
 :root {
   /* Updated theme to match Vercel dashboard dark aesthetic */
   --background: oklch(0.08 0 0);
