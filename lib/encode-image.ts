@@ -22,7 +22,7 @@ export async function analyzeImageWithAI(
 
   try {
     const possibleModels = [
-      "qwen/qwen-2.5-vl-7b-instruct"
+      "qwen2-5-vl-3b-instruct-k13n1s"
     ]
 
     let lastError: any = null
